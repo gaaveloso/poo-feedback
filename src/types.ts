@@ -10,3 +10,9 @@ export type TVideoDBPost = {
     title: string,
     duration: number,
 }
+
+export type TCourseDB = {
+    id: string,
+    name: string,
+    lessons: number
+}

@@ -4,6 +4,8 @@ import { Video } from "./models/Video";
 import { TVideoDB } from "./types";
 import { VideoDatabase } from "./database/VideoDatabase";
 import { VideoController } from "./controller/VideoController";
+import { CourseController } from "./controller/CourseController";
+import { courseRouter } from "./router/courseRouter";
 
 const app = express();
 
@@ -15,6 +17,7 @@ app.listen(3003, () => {
 });
 
 const videoController = new VideoController()
+const courseController = new CourseController()
 
 app.get("/ping", async (req: Request, res: Response) => {
   try {
@@ -34,6 +37,8 @@ app.get("/ping", async (req: Request, res: Response) => {
   }
 });
 
+app.use("/courses", courseRouter)
+
 app.get("/videos", videoController.getVideos);
 
 app.post("/videos", videoController.createVideos);
@@ -41,3 +46,5 @@ app.post("/videos", videoController.createVideos);
 app.put("/videos/:id", videoController.updateVideo);
 
 app.delete("/videos/:id", videoController.deleteVideo);
+
+app.put("/courses/:id", courseController.editCourse)

@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
+import { VideoBusiness } from "../business/VideoBusiness";
 import { VideoDatabase } from "../database/VideoDatabase";
+import { BaseError } from "../errors/BaseError";
 import { Video } from "../models/Video";
 import { TVideoDB } from "../types";
 
@@ -8,20 +10,10 @@ export class VideoController {
     try {
       const q = req.query.q as string | undefined;
 
-      const videoDatabase = new VideoDatabase();
-      const videosDB = await videoDatabase.findVideos(q);
+      const videoBusiness = new VideoBusiness()
+      const output = await videoBusiness.getVideos(q)
 
-      const videos: Video[] = videosDB.map(
-        (videoDB) =>
-          new Video(
-            videoDB.id,
-            videoDB.title,
-            videoDB.duration,
-            videoDB.upload_at
-          )
-      );
-
-      res.status(200).send(videos);
+      res.status(200).send(output);
     } catch (error) {
       console.log(error);
 
@@ -29,8 +21,8 @@ export class VideoController {
         res.status(500);
       }
 
-      if (error instanceof Error) {
-        res.send(error.message);
+      if (error instanceof BaseError) {
+        res.status(error.statusCode).send(error.message)
       } else {
         res.send("Erro inesperado");
       }
@@ -40,48 +32,12 @@ export class VideoController {
   public createVideos = async (req: Request, res: Response) => {
     try {
       const { id, title, duration } = req.body;
+      const input = { id, title, duration }
 
-      if (typeof id !== "string") {
-        res.status(400);
-        throw new Error("'id' deve ser string");
-      }
+      const videoBusiness = new VideoBusiness()
+      const output = await videoBusiness.createVideos(input)
 
-      if (typeof title !== "string") {
-        res.status(400);
-        throw new Error("'title' deve ser string");
-      }
-
-      if (typeof duration !== "number") {
-        res.status(400);
-        throw new Error("'duration' deve ser number");
-      }
-
-      const videoDatabase = new VideoDatabase();
-      const videoDBExists = await videoDatabase.findVideoById(id);
-
-      if (videoDBExists) {
-        res.status(400);
-        throw new Error("'id' já existe");
-      }
-
-      const newVideo = new Video(id, title, duration, new Date().toISOString());
-
-      const newVideoDB: TVideoDB = {
-        id: newVideo.getId(),
-        title: newVideo.getTitle(),
-        duration: newVideo.getDuration(),
-        upload_at: newVideo.getUploadAt(),
-      };
-
-      // await db("videos").insert(newVideoDB);
-      await videoDatabase.insertVideo(newVideoDB);
-
-      const response = {
-        message: "Video criado com sucesso",
-        newVideo,
-      };
-
-      res.status(201).send(response);
+      res.status(201).send(output);
     } catch (error) {
       console.log(error);
 
@@ -89,8 +45,8 @@ export class VideoController {
         res.status(500);
       }
 
-      if (error instanceof Error) {
-        res.send(error.message);
+      if (error instanceof BaseError) {
+        res.status(error.statusCode).send(error.message)
       } else {
         res.send("Erro inesperado");
       }
@@ -144,8 +100,8 @@ export class VideoController {
         res.status(500);
       }
 
-      if (error instanceof Error) {
-        res.send(error.message);
+      if (error instanceof BaseError) {
+        res.status(error.statusCode).send(error.message)
       } else {
         res.send("Erro inesperado");
       }
@@ -176,8 +132,8 @@ export class VideoController {
         res.status(500);
       }
 
-      if (error instanceof Error) {
-        res.send(error.message);
+      if (error instanceof BaseError) {
+        res.status(error.statusCode).send(error.message)
       } else {
         res.send("Erro inesperado");
       }
